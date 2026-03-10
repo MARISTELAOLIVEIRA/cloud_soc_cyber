@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+<meta charset="UTF-8">
+<title>Cloud SOC Cyber Range</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<style>
+
+body{
+background:#020617;
+color:#00ff9c;
+font-family:Courier New;
+text-align:center;
+padding:20px;
+}
+
+.container{
+max-width:1100px;
+margin:auto;
+}
+
+.dashboard{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+margin-top:20px;
+}
+
+.panel{
+background:black;
+border:1px solid #00ff9c;
+padding:15px;
+}
+
+#map{
+height:300px;
+}
+
+.logs{
+height:250px;
+overflow:auto;
+font-size:12px;
+text-align:left;
+}
+
+button{
+background:black;
+color:#00ff9c;
+border:1px solid #00ff9c;
+padding:8px 15px;
+margin:5px;
+cursor:pointer;
+}
+
+button:hover{
+background:#00ff9c;
+color:black;
+}
+
+.progressBar{
+width:100%;
+height:15px;
+background:#111;
+margin-top:15px;
+}
+
+.progress{
+height:100%;
+width:0%;
+background:#00ff9c;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🚨 CLOUD SOC CYBER RANGE</h1>
+
+<input id="name" placeholder="Digite seu nome completo">
+
+<button onclick="startGame()">INICIAR MISSÃO</button>
+
+<div class="progressBar">
+<div class="progress" id="progress"></div>
+</div>
+
+<div class="dashboard">
+
+<div class="panel">
+
+<h3>🌍 Ataques Globais</h3>
+<div id="map"></div>
+
+</div>
+
+<div class="panel">
+
+<h3>🖥️ Logs Cloud</h3>
+<div class="logs" id="logs"></div>
+
+</div>
+
+</div>
+
+<br>
+
+<div class="panel" id="game">
+
+Clique em iniciar missão
+
+</div>
+
+</div>
+
+<script>
+
+let map
+let attackLines=[]
+
+function initMap(){
+
+map=L.map('map').setView([20,0],2)
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map)
+
+setInterval(simulateAttack,2000)
+
+}
+
+function simulateAttack(){
+
+let locations=[
+
+[37.77,-122.41],
+[55.75,37.61],
+[-23.55,-46.63],
+[35.68,139.69],
+[51.50,-0.12],
+[28.61,77.20]
+
+]
+
+let start=locations[Math.floor(Math.random()*locations.length)]
+let end=locations[Math.floor(Math.random()*locations.length)]
+
+let line=L.polyline([start,end],{color:'red'}).addTo(map)
+
+attackLines.push(line)
+
+if(attackLines.length>6){
+map.removeLayer(attackLines.shift())
+}
+
+}
+
+function generateLogs(){
+
+let logs=[
+
+"AWS CloudTrail: ConsoleLogin user=admin ip=185.22.10.5 MFA=NO",
+
+"AzureAD: SignInFailure user=finance location=RU",
+
+"S3: Bucket policy changed to PUBLIC",
+
+"IAM: AdministratorAccess attached",
+
+"WAF: SQL injection blocked",
+
+"GuardDuty: Crypto miner detected",
+
+"Azure Defender: suspicious login detected",
+
+"EC2: Security group opened port 22 to 0.0.0.0/0"
+
+]
+
+setInterval(function(){
+
+let log=logs[Math.floor(Math.random()*logs.length)]
+
+let el=document.getElementById("logs")
+
+el.innerHTML=new Date().toLocaleTimeString()+" - "+log+"<br>"+el.innerHTML
+
+},1500)
+
+}
+
+function shuffle(array){
+
+for(let i=array.length-1;i>0;i--){
+
+let j=Math.floor(Math.random()*(i+1))
+
+let temp=array[i]
+array[i]=array[j]
+array[j]=temp
+
+}
+
+return array
+
+}
+
+const questions=[
+
+// INICIANTE
+
+{
+q:"Um bucket S3 foi configurado como PUBLIC. Qual o risco principal?",
+options:["Queda de servidor","Vazamento de dados","Erro DNS"],
+correct:1
+},
+
+{
+q:"Login AWS ocorreu sem MFA. Qual controle deveria existir?",
+options:["Enable MFA","Firewall","DNS"],
+correct:0
+},
+
+{
+q:"Security group liberou porta 22 para 0.0.0.0/0. Qual problema?",
+options:["SSH aberto para internet","Erro de backup","Falha DNS"],
+correct:0
+},
+
+{
+q:"Qual princípio garante que dados não sejam alterados sem autorização?",
+options:["Integridade","Confidencialidade","Disponibilidade"],
+correct:0
+},
+
+{
+q:"Qual princípio garante que sistemas estejam disponíveis quando necessário?",
+options:["Disponibilidade","Integridade","Confidencialidade"],
+correct:0
+},
+
+{
+q:"Qual serviço AWS registra atividades da conta e chamadas de API?",
+options:["CloudTrail","S3","EC2"],
+correct:0
+},
+
+{
+q:"Qual serviço Azure gerencia identidades e autenticação?",
+options:["Azure AD","Azure Storage","Azure DNS"],
+correct:0
+},
+
+// ANALISTA
+
+{
+q:"Um usuário recebeu acesso administrador sem necessidade. Qual princípio foi violado?",
+options:["Least Privilege","Alta disponibilidade","Escalabilidade"],
+correct:0
+},
+
+{
+q:"Um ataque DDoS em um servidor cloud afeta qual princípio?",
+options:["Disponibilidade","Integridade","Confidencialidade"],
+correct:0
+},
+
+{
+q:"Dados foram alterados sem autorização em um banco cloud. Qual princípio foi violado?",
+options:["Integridade","Disponibilidade","Confidencialidade"],
+correct:0
+},
+
+{
+q:"Qual serviço AWS é usado para armazenar arquivos na nuvem?",
+options:["S3","EC2","Lambda"],
+correct:0
+},
+
+{
+q:"Qual modelo cloud fornece infraestrutura virtual (servidores e redes)?",
+options:["IaaS","SaaS","PaaS"],
+correct:0
+},
+
+{
+q:"Qual modelo cloud fornece aplicações prontas via internet?",
+options:["SaaS","IaaS","PaaS"],
+correct:0
+},
+
+{
+q:"Qual prática recomenda conceder apenas permissões necessárias aos usuários?",
+options:["Least Privilege","Admin Access","Open Access"],
+correct:0
+},
+
+// ESPECIALISTA
+
+{
+q:"Uma VM foi invadida porque o firewall não foi configurado. Quem era responsável?",
+options:["Cliente","Provedor","ISP"],
+correct:0
+},
+
+{
+q:"Dados sensíveis armazenados sem criptografia em cloud representam risco para qual princípio?",
+options:["Confidencialidade","Disponibilidade","Integridade"],
+correct:0
+},
+
+{
+q:"Um login ocorreu de um país incomum e sem MFA. Qual evento de segurança pode indicar?",
+options:["Comprometimento de credenciais","Falha de hardware","Erro de rede"],
+correct:0
+},
+
+{
+q:"Logs de segurança são importantes principalmente para:",
+options:["Investigar incidentes","Aumentar velocidade","Reduzir custos"],
+correct:0
+},
+
+{
+q:"No modelo de responsabilidade compartilhada, quem protege o data center físico?",
+options:["Provedor cloud","Cliente","Administrador"],
+correct:0
+},
+
+{
+q:"Uma chave secreta AWS exposta em um repositório público indica:",
+options:["Vazamento de credenciais","Falha DNS","Erro de backup"],
+correct:0
+}
+
+]
+
+let current=0
+let score=0
+
+function startGame(){
+
+let name=document.getElementById("name").value.trim()
+
+if(name===""){
+alert("Digite seu nome completo")
+return
+}
+
+current=0
+score=0
+
+loadQuestion()
+
+}
+
+function loadQuestion(){
+
+if(current>=questions.length){
+
+finishGame()
+return
+
+}
+
+let q=questions[current]
+
+let options=q.options.map(function(opt,i){
+return {text:opt,index:i}
+})
+
+options=shuffle(options)
+
+let html="<h3>"+q.q+"</h3>"
+
+options.forEach(function(opt){
+
+html+="<button onclick='answer("+opt.index+")'>"+opt.text+"</button>"
+
+})
+
+document.getElementById("game").innerHTML=html
+
+updateProgress()
+
+}
+
+function answer(choice){
+
+let q=questions[current]
+
+if(choice===q.correct){
+score++
+}
+
+current++
+
+loadQuestion()
+
+}
+
+function updateProgress(){
+
+let percent=(current/questions.length)*100
+
+document.getElementById("progress").style.width=percent+"%"
+
+}
+
+function finishGame(){
+
+let name=document.getElementById("name").value
+let percent=Math.round((score/questions.length)*100)
+let time=new Date().toLocaleTimeString()
+
+document.getElementById("game").innerHTML=
+
+"<h2>MISSÃO CONCLUÍDA</h2>"+
+"<p>Analista: "+name+"</p>"+
+"<p>Horário: "+time+"</p>"+
+"<p>Acertos: "+score+"/"+questions.length+"</p>"+
+"<p>Aproveitamento: "+percent+"%</p>"+
+"<p>Tire um PRINT desta tela e envie para a professora.</p>"
+
+}
+
+window.onload=function(){
+
+initMap()
+generateLogs()
+
+}
+
+</script>
+
+</body>
+</html>
